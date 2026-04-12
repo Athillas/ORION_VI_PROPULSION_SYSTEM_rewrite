@@ -5,7 +5,6 @@
 #include <Arduino.h>
 #include <CAN.h>
 
-#include "Config.h"
 #include "States/HardwareCommandState.h"
 
 namespace ODriveCAN

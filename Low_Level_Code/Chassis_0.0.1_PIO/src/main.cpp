@@ -7,7 +7,6 @@
 #include <Arduino.h>
 
 // Dołączamy nasze moduły
-#include "Config.h"
 #include "ServoControl.h"
 #include "ODriveCAN.h"
 #include "Network.h"

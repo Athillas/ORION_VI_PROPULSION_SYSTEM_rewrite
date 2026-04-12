@@ -1,6 +1,6 @@
 // ServoControl.cpp
 #include <Arduino.h>
-
+#include <hal/ledc_hal.h>
 #include <freertos/task.h>
 
 #include "Pins.h"
@@ -17,8 +17,8 @@ static TaskHandle_t ServoTaskHandle;
 void ServoControl::initServo(struct HardwareCommandState &hcs)
 {
     Serial.print("Init LEDC on Pin "); Serial.print(Pins::SERVO_PIN); Serial.println("...");
-    ledcSetup(HardwareConfig::LEDC_CHANNEL, HardwareConfig::LEDC_FREQ, HardwareConfig::LEDC_RESOLUTION);
-    ledcAttachPin(Pins::SERVO_PIN, HardwareConfig::LEDC_CHANNEL);
+    // This single line sets the frequency and resolution and attaches the pin
+    ledcAttach(Pins::SERVO_PIN, HardwareConfig::LEDC_FREQ, HardwareConfig::LEDC_RESOLUTION);
     setServoMicroseconds(HardwareConfig::MID_PULSE);
     
     Serial.println("Creating Servo Task...");
@@ -39,7 +39,7 @@ void ServoControl::setServoMicroseconds(int us)
     if (us > HardwareConfig::MAX_PULSE) us = HardwareConfig::MAX_PULSE;
     
     long duty = ((long)us * 65536L) / 20000L;
-    ledcWrite(HardwareConfig::LEDC_CHANNEL, duty);
+    ledcWrite(Pins::SERVO_PIN, duty);
 }
 
 void ServoControl::servoTask(void * parameter)
