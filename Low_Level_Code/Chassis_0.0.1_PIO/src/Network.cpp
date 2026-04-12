@@ -18,16 +18,21 @@
 #include "States/HardwareCommandState.h"
 #include "States/NetworkState.h"
 
-// Needed because of Ethernet.begin() limitations.
-static byte MAC_[6];
-static byte IP_[4];
+namespace
+{
+	// Non-const local copies, needed because of Ethernet's begin limitations.
+	static uint8_t MAC_[6]; 
+	static uint8_t IP_[4];
+	
+	/*
+	  Local pointers to NetworkState and HardwareCommandState structs.
 
-/*
-  Local pointers to NetworkState and HardwareCommandState structs. Initialized in initNetwork() method.
-  Needed because callback function cannot accept any additional arguments apart from the ones dictated by PubSubClient. 
-*/
-static struct NetworkState *ns_ = nullptr;
-static struct HardwareCommandState *hcs_ = nullptr;
+	  Initialized in initNetwork() method.
+	  Needed because callback function cannot accept any additional arguments apart from the ones dictated by PubSubClient. 
+	*/
+	static struct NetworkState *ns_ = nullptr;
+	static struct HardwareCommandState *hcs_ = nullptr;
+}
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
