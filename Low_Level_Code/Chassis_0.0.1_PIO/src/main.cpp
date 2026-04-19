@@ -46,10 +46,10 @@ void loop()
     
     if (now - ns.lastMqttCmdTime > NetworkConfig::MQTT_SAFETY_TIMEOUT)
     {
-        if (hcs.targetVelocity != 0.0f)
+        if (hcs.wheels[0].targetVelocity != 0.0f || hcs.wheels[1].targetVelocity != 0.0f)
         {
             Serial.println("!!! WATCHDOG: Utrata polaczenia - STOP !!!");
-            hcs.targetVelocity = 0.0f;
+            hcs.wheels[0].targetVelocity = hcs.wheels[1].targetVelocity = 0.0f;
         }
     }
 
@@ -62,8 +62,11 @@ void loop()
     {
         lastCanCycle = now;
         // Serial.println("[CAN] Sending Vel...");
-        ODriveCAN::sendVelocity(hcs.targetVelocity);
-        ODriveCAN::requestEncoderData();
+        ODriveCAN::sendVelocity(hcs.wheels[0].targetVelocity, CANConfig::FRONT);
+        ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
+
+        ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
+        ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
     }
 
     // 3. Odbiór danych z CAN

@@ -50,8 +50,8 @@ void ServoControl::servoTask(void * parameter)
 
     for(;;)
     {
-        // 1. Oblicz cel
-        float targetPulse = 1500.0 + (hcs->targetSteering * 1000.0);
+        // 1. Oblicz cel (for now, identical for both front and rear wheels).
+        float targetPulse = 1500.0 + (hcs->wheels[0].targetSteering * 1000.0); // TODO: change accordingly to be able to control each odrive separately
         
         if (targetPulse < (float)HardwareConfig::MIN_PULSE) targetPulse = (float)HardwareConfig::MIN_PULSE;
         if (targetPulse > (float)HardwareConfig::MAX_PULSE) targetPulse = (float)HardwareConfig::MAX_PULSE;

@@ -7,16 +7,22 @@
 
 struct HardwareCommandState
 {
-    volatile float targetVelocity;
-    volatile float targetSteering;
-    float measuredPos;
-    float measuredVel;
-    uint32_t activeErrors;
+    struct ODriveWheel
+    {
+        volatile float targetVelocity;
+        volatile float targetSteering;
+        float measuredPos;
+        float measuredVel;
+        uint32_t activeErrors;
+    };
 
-    HardwareCommandState() :
-    targetVelocity(0), targetSteering(0),
-    measuredPos(0), measuredVel(0), activeErrors(0)
-    {}
+    ODriveWheel wheels[2];
+
+    HardwareCommandState()
+    {
+        wheels[0] = {0.0, 0.0, 0.0, 0.0, 0};
+        wheels[1] = {0.0, 0.0, 0.0, 0.0, 0};
+    }
 };
 
 #endif

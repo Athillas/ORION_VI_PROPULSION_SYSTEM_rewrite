@@ -20,6 +20,15 @@ namespace HardwareConfig
     constexpr float     DEADBAND            = 3.0;
 
     constexpr float     STARTING_SERVO_POS  = 1500.0;
+
+    
+    enum WheelsSide : uint8_t
+    {
+        LEFT                                = 0,
+        RIGHT                               = 1
+    };
+    
+    constexpr WheelsSide SIDE               = LEFT;
 }
 
 #endif

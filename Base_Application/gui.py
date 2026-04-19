@@ -1,3 +1,4 @@
+# gui.py
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 import threading
@@ -6,6 +7,10 @@ from collections import deque
 
 # Matplotlib
 import matplotlib
+from matplotlib import widgets
+from numpy import true_divide
+
+from utils import AppState
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -15,7 +20,7 @@ import config
 class DashboardGUI:
     def __init__(self, root, app_state, input_manager, mqtt_manager):
         self.root = root
-        self.state = app_state
+        self.state:AppState = app_state
         self.input_manager = input_manager
         self.mqtt_manager = mqtt_manager
         
@@ -95,6 +100,27 @@ class DashboardGUI:
         self.lbl_steering = tk.Label(gauge_frame, text="Steering: 0.00", bg=config.BG_COLOR, fg="#FFAA00", font=("Arial", 16))
         self.lbl_steering.pack(pady=(0, 10))
 
+        self.odrive_widgets = {}
+
+        container = tk.Frame(self.center_frame, bg=config.BG_COLOR)
+        container.pack(fill="both", expand=True)
+
+        ids = ["00", "10", "01", "11"]
+
+        for i, odrive_id in enumerate(ids):
+            frame, odrive_widget = self._build_odrive_panel(container, odrive_id)
+
+            row = i // 2
+            col = i % 2
+
+            frame.grid(row = row, column= col, sticky="nsew", padx=5, pady=5)
+
+            self.odrive_widgets[odrive_id] = odrive_widget
+
+        for i in range(2):
+            container.grid_rowconfigure(i, weight=1)
+            container.grid_columnconfigure(i, weight=1)
+
         # Feedback Frame
         fb_frame = tk.LabelFrame(self.center_frame, text="Feedback & Diagnostyka", bg=config.BG_COLOR, fg="#00ff00")
         fb_frame.pack(pady=20, fill="x", padx=10)
@@ -124,7 +150,7 @@ class DashboardGUI:
         self.lbl_dist = tk.Label(dist_container, text="Dystans: 0.00 m", bg=config.BG_COLOR, fg="white", font=("Consolas", 18))
         self.lbl_dist.pack(side="left")
         
-        tk.Button(dist_container, text="[RESET]", command=self.reset_trip, bg="#444", fg="white", font=("Arial", 10)).pack(side="left", padx=10)
+        #tk.Button(dist_container, text="[RESET]", command=lambda : self.reset_trip(), bg="#444", fg="white", font=("Arial", 10)).pack(side="left", padx=10)
         
         tk.Frame(fb_frame, height=1, bg="#444").pack(fill="x", padx=5, pady=5)
         
@@ -134,6 +160,92 @@ class DashboardGUI:
 
         self.lbl_lag = tk.Label(fb_frame, text="Lag: -- ms", bg=config.BG_COLOR, fg="#aaaaaa", font=("Consolas", 16, "bold"))
         self.lbl_lag.pack(anchor="w", padx=10, pady=(5,10))
+
+    def _build_odrive_panel(self, parent, odrive_id):
+        frame = tk.LabelFrame(parent, text=f"ODrive {odrive_id}", bg=config.BG_COLOR, fg="#00ff00")
+        frame.grid_propagate(False)
+
+        widgets = {}
+
+        # --- RPS ---
+        widgets["lbl_rps"] = tk.Label(
+            frame, text="RPS: 0.00",
+            bg=config.BG_COLOR, fg="#00ff00",
+            font=("Consolas", 16)
+        )
+        widgets["lbl_rps"].pack(anchor="w", padx=10, pady=2)
+
+        # --- Speed container ---
+        speed_container = tk.Frame(frame, bg=config.BG_COLOR)
+        speed_container.pack(anchor="w", padx=10, pady=2)
+
+        widgets["lbl_kmh"] = tk.Label(
+            speed_container, text="0.0 km/h",
+            bg=config.BG_COLOR, fg="#ff00ff",
+            font=("Consolas", 16, "bold")
+        )
+        widgets["lbl_kmh"].pack(side="left", padx=(0, 15))
+
+        widgets["lbl_ms"] = tk.Label(
+            speed_container, text="0.00 m/s",
+            bg=config.BG_COLOR, fg="#ff88ff",
+            font=("Consolas", 12)
+        )
+        widgets["lbl_ms"].pack(side="left")
+
+        # --- Position ---
+        widgets["lbl_pos"] = tk.Label(
+            frame, text="Pozycja: 0.00 obr",
+            bg=config.BG_COLOR, fg="#00ccff",
+            font=("Consolas", 14)
+        )
+        widgets["lbl_pos"].pack(anchor="w", padx=10, pady=5)
+
+        # --- Distance + Reset ---
+        dist_container = tk.Frame(frame, bg=config.BG_COLOR)
+        dist_container.pack(anchor="w", padx=10, pady=5)
+
+        widgets["lbl_dist"] = tk.Label(
+            dist_container, text="Dystans: 0.00 m",
+            bg=config.BG_COLOR, fg="white",
+            font=("Consolas", 14)
+        )
+        widgets["lbl_dist"].pack(side="left")
+
+        # IMPORTANT: bind odrive_id
+        widgets["btn_reset"] = tk.Button(
+            dist_container,
+            text="[RESET]",
+            command=lambda oid=odrive_id: self.reset_trip([oid]),
+            bg="#444", fg="white",
+            font=("Arial", 9)
+        )
+        widgets["btn_reset"].pack(side="left", padx=10)
+
+        # --- Separator ---
+        tk.Frame(frame, height=1, bg="#444").pack(fill="x", padx=5, pady=5)
+
+        # --- Packet Age ---
+        widgets["lbl_packet_age"] = tk.Label(
+            frame,
+            text="Sieć (Packet Age): -- ms",
+            bg=config.BG_COLOR,
+            fg="#aaaaaa",
+            font=("Consolas", 10)
+        )
+        widgets["lbl_packet_age"].pack(anchor="w", padx=10)
+
+        # --- Lag ---
+        widgets["lbl_lag"] = tk.Label(
+            frame,
+            text="Lag: -- ms",
+            bg=config.BG_COLOR,
+            fg="#aaaaaa",
+            font=("Consolas", 12, "bold")
+        )
+        widgets["lbl_lag"].pack(anchor="w", padx=10, pady=(5, 10))
+
+        return frame, widgets
 
     def _build_right_panel(self):
         self.lbl_mqtt_status = tk.Label(self.right_frame, text="MQTT: Rozłączono", bg=config.BG_COLOR, fg=config.FG_COLOR, font=("Arial", 12))
@@ -177,9 +289,13 @@ class DashboardGUI:
             joy_name = joy.get_name()[:15]
             tk.Label(self.joystick_list_frame, text=f"Joy {i}: {joy_name}", bg=config.BG_COLOR, fg="white").pack(anchor="w")
 
-    def reset_trip(self):
-        self.state.start_position_offset = self.state.measured_position
-        self.lbl_dist.config(text="Dystans: 0.00 m")
+    def reset_trip(self, ids: list[str]):
+        for id in ids:
+            if (not id in ['00', '10', '01', '11']):
+                print("Unknown id! Expected id = '00' | '10' | '01' | '11', instead got {id}")
+                return
+            self.state.o_drives[id].start_position_offset = self.state.o_drives[id].measured_position
+            self.lbl_dist.config(text="Dystans: 0.00 m")
 
     def run_full_start(self):
         threading.Thread(target=self._full_start_thread, daemon=True).start()
@@ -204,46 +320,54 @@ class DashboardGUI:
         self.root.after(0, lambda: self.btn_full_start.config(text="★ FULL START (AUTO) ★", state="normal", bg=config.BTN_FULL_START_COLOR))
 
     def update_interface(self):
-        # 1. Update Labels (Target, Steering, Status)
         self.lbl_target.config(text=f"Target: {self.state.target_rps:.2f} RPS")
         self.lbl_steering.config(text=f"Steering: {self.state.steering_val:.2f}")
         self.lbl_mqtt_status.config(text=self.state.mqtt_status_text)
-        
-        # 2. Update Feedback (RPS, km/h, m/s)
-        meas_rps = self.state.measured_velocity
-        speed_ms = meas_rps * config.DISTANCE_PER_MOTOR_REV
-        speed_kmh = speed_ms * 3.6
-        
-        self.lbl_meas_vel.config(text=f"RPS: {meas_rps:.2f}")     # <--- DODANO
-        self.lbl_kmh.config(text=f"{speed_kmh:.1f} km/h")
-        self.lbl_ms.config(text=f"{speed_ms:.2f} m/s")           # <--- DODANO
-        
-        self.lbl_pos.config(text=f"Pozycja: {self.state.measured_position:.2f} obr")
-        
-        trip_turns = self.state.measured_position - self.state.start_position_offset
-        trip_distance_m = trip_turns * config.DISTANCE_PER_MOTOR_REV
-        self.lbl_dist.config(text=f"Dystans: {trip_distance_m:.2f} m")
 
-        # 3. Packet Age
-        if self.state.last_feedback_time > 0:
-            diff_ms = (time.time() - self.state.last_feedback_time) * 1000.0
-            self.lbl_packet_age.config(text=f"Sieć (Packet Age): {int(diff_ms)} ms")
-            if diff_ms < 200: self.lbl_packet_age.config(fg="#88ff88")
-            elif diff_ms < 500: self.lbl_packet_age.config(fg="orange")
-            else: self.lbl_packet_age.config(fg="red")
-        else:
-            self.lbl_packet_age.config(text="Sieć: Brak danych", fg="grey")
+        for odrive_id, odrv in self.state.o_drives.items():
+            widgets = self.odrive_widgets.get(odrive_id)
+            if not widgets:
+                continue
 
-        # 4. Lag
-        lag = self.state.latency_estimator.estimate_lag(self.state.measured_velocity)
-        if lag is not None:
-            self.lbl_lag.config(text=f"Lag: {int(lag)} ms")
-            if lag < 300: self.lbl_lag.config(fg="#00ff00")
-            elif lag < 600: self.lbl_lag.config(fg="orange")
-            else: self.lbl_lag.config(fg="red")
-        else:
-            if abs(self.state.measured_velocity) < 0.5:
-                self.lbl_lag.config(text="Lag: (Stop)", fg="#555")
+            meas_rps = odrv.measured_velocity
+            speed_ms = meas_rps * config.DISTANCE_PER_MOTOR_REV
+            speed_kmh = speed_ms * 3.6
+
+            widgets["lbl_rps"].config(text=f"RPS: {meas_rps:.2f}")
+            widgets["lbl_kmh"].config(text=f"{speed_kmh:.1f} km/h")
+            widgets["lbl_ms"].config(text=f"{speed_ms:.2f} m/s")
+
+            widgets["lbl_pos"].config(text=f"Pozycja: {odrv.measured_position:.2f} obr")
+
+            trip_turns = odrv.measured_position - odrv.start_position_offset
+            trip_distance = trip_turns * config.DISTANCE_PER_MOTOR_REV
+            widgets["lbl_dist"].config(text=f"Dystans: {trip_distance:.2f} m")
+
+            # Packet Age
+            if odrv.last_feedback_time > 0:
+                diff_ms = (time.time() - odrv.last_feedback_time) * 1000.0
+                widgets["lbl_packet_age"].config(text=f"Packet Age: {int(diff_ms)} ms")
+
+                if diff_ms < 200:
+                    widgets["lbl_packet_age"].config(fg="#88ff88")
+                elif diff_ms < 500:
+                    widgets["lbl_packet_age"].config(fg="orange")
+                else:
+                    widgets["lbl_packet_age"].config(fg="red")
+            else:
+                widgets["lbl_packet_age"].config(text="Brak danych", fg="grey")
+
+            # Lag (optional: per-module or global)
+            lag = self.state.latency_estimator.estimate_lag(meas_rps)
+            if lag is not None:
+                widgets["lbl_lag"].config(text=f"Lag: {int(lag)} ms")
+
+                if lag < 300:
+                    widgets["lbl_lag"].config(fg="#00ff00")
+                elif lag < 600:
+                    widgets["lbl_lag"].config(fg="orange")
+                else:
+                    widgets["lbl_lag"].config(fg="red")
 
         # Console logs
         while self.state.logs:
@@ -258,7 +382,9 @@ class DashboardGUI:
         ct = time.time() - self.start_time
         self.plot_data_x.append(ct)
         self.plot_data_target.append(self.state.target_rps)
-        self.plot_data_meas.append(self.state.measured_velocity)
+        
+        # Mean value is taken for the plot
+        self.plot_data_meas.append(sum(item.measured_velocity for item in self.state.o_drives.values()) / len(self.state.o_drives))
 
         if self.plot_counter % config.PLOT_SKIP_FRAMES == 0 and len(self.plot_data_x) > 1:
             self.line_target.set_data(self.plot_data_x, self.plot_data_target)

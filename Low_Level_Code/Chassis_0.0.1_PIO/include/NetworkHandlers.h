@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 
 #include "Configs/NetworkConfig.h"
+#include "Configs/CANConfig.h"
 
 #include "States/NetworkState.h"
 #include "States/HardwareCommandState.h"
@@ -17,7 +18,7 @@ namespace NetworkHandlers
         struct HardwareCommandState &hcs
     );
 
-    void controlCmdHandler(char *payload);
+    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> &doc);
 
     void feedbackEncHandler(
         struct NetworkState &ns, const struct HardwareCommandState &hfs
@@ -25,6 +26,7 @@ namespace NetworkHandlers
     
     void errorEncHandler(
         struct NetworkState &ns,
+        const CANConfig::ODriveId node_id,
         const uint32_t errorDesc
     );
 }

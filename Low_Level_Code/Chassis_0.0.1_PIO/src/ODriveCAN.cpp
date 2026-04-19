@@ -8,102 +8,103 @@
 #include "Pins.h"
 #include "Configs/CANConfig.h"
 
-enum PacketId : uint8_t
-{
-	GET_ERRORS				= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_GET_ERROR,
-	SET_AXIS_STATE 			= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_SET_AXIS_STATE,
-	GET_ENCODER				= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_GET_ENCODER,
-	SET_CONTROL_MODE 		= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_SET_CONTROLLER_MODE,
-	SET_INPUT_VEL 			= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_SET_INPUT_VEL,
-	REBOOT_ODRIVE			= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_REBOOT_ODRIVE,
-	CLEAR_ERRORS			= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_CLEAR_ERRORS,
-	REQUEST_ODRIVE_ERRORS 	= (CANConfig::ODRIVE_NODE_ID << 5) | CANConfig::CMD_ID_GET_ERROR,
-};
-
 void ODriveCAN::initCAN()
 {
 	Serial.println("Init CAN...");
 	CAN.setPins(Pins::CAN_RX_PIN, Pins::CAN_TX_PIN);
-	if (!CAN.begin(CANConfig::CAN_BAUD_RATE)) {
+	if (!CAN.begin(CANConfig::CAN_BAUD_RATE))
+	{
 		Serial.println("ERROR: CAN Init Failed!");
 		while(1); // Zatrzymaj, jeśli CAN nie działa
-	} else {
+	}
+	else
+	{
 		Serial.println("CAN Init OK");
 	}
 }
 
-void ODriveCAN::sendVelocity(float velocity)
+void ODriveCAN::sendVelocity(float velocity, CANConfig::ODriveId id)
 {
 	float torqueFF = 0.0f;
 
-	CAN.beginPacket(PacketId::SET_INPUT_VEL);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::SET_INPUT_VEL));
 	CAN.write((uint8_t*)&velocity, 4);
 	CAN.write((uint8_t*)&torqueFF, 4);
 	CAN.endPacket();
 }
 
-void ODriveCAN::setAxisState(int32_t state)
+void ODriveCAN::setAxisState(int32_t state, CANConfig::ODriveId id)
 {
-	CAN.beginPacket(PacketId::SET_AXIS_STATE);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::SET_AXIS_STATE));
 	CAN.write((uint8_t*)&state, 4);
 	CAN.endPacket();
 }
 
-void ODriveCAN::setControlMode(int32_t controlMode, int32_t inputMode)
+void ODriveCAN::setControlMode(int32_t controlMode, int32_t inputMode, CANConfig::ODriveId id)
 {
-	CAN.beginPacket(PacketId::SET_CONTROL_MODE);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::SET_CONTROLLER_MODE));
 	CAN.write((uint8_t*)&controlMode, 4);
 	CAN.write((uint8_t*)&inputMode, 4);
 	CAN.endPacket();
 }
 
-void ODriveCAN::requestEncoderData()
+void ODriveCAN::requestEncoderData(CANConfig::ODriveId id)
 {
-	CAN.beginPacket(PacketId::GET_ENCODER, 8, true);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::GET_ENCODER), 8, true);
 	CAN.endPacket();
 }
 
-void ODriveCAN::clearErrors()
+void ODriveCAN::clearErrors(CANConfig::ODriveId id)
 {
-	CAN.beginPacket(PacketId::CLEAR_ERRORS);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::CLEAR_ERRORS));
 	CAN.endPacket();
 }
 
-void ODriveCAN::rebootODrive()
+void ODriveCAN::rebootODrive(CANConfig::ODriveId id)
 {
-	CAN.beginPacket(PacketId::REBOOT_ODRIVE);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::ODriveCommand::REBOOT_ODRIVE));
 	CAN.endPacket();
 }
 
-void ODriveCAN::requestODriveErrors()
+void ODriveCAN::requestODriveErrors(CANConfig::ODriveId id)
 {
 	// Wysyłamy ramkę RTR (prośbę o dane) - 3. argument 'true' oznacza RTR
-	CAN.beginPacket(PacketId::GET_ERRORS, 8, true);
+	CAN.beginPacket(CANConfig::getPacketId(id, CANConfig::GET_ERROR), 8, true);
 	CAN.endPacket();
 }
 
 void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
 {
-	uint32_t packetSize = CAN.parsePacket();
-	if(!packetSize) return;
+	uint32_t packet_size = CAN.parsePacket();
+	if(!packet_size) return;
 
-	uint32_t cmdId = CAN.packetId() & 0x01F;
-	
-	if (cmdId == CANConfig::CMD_ID_GET_ENCODER && packetSize >= 8)
+	// bits 0-4: command id, bits 5-10: node id
+	CANConfig::ODriveCommand cmd_id = (CANConfig::ODriveCommand) (CAN.packetId() & 0x1F); // Extracting bits 0-4
+	CANConfig::ODriveId node_id = (CANConfig::ODriveId) ((CAN.packetId() >> 5) & 0x3F); // Extracting bits 5-10
+
+	if (node_id >= 2)
+	{
+		Serial.println("[CAN] node_id is out of bounds in handleCANMessages. Check ODrive configurations.");
+	}
+
+	if (cmd_id == CANConfig::GET_ENCODER && packet_size >= 8)
 	{
 		uint8_t buffer[8];
 		CAN.readBytes(buffer, 8);
-		memcpy(&hcs.measuredPos, &buffer[0], 4);
-		memcpy(&hcs.measuredVel, &buffer[4], 4);
+		memcpy(&hcs.wheels[node_id].measuredPos, &buffer[0], 4);
+		memcpy(&hcs.wheels[node_id].measuredVel, &buffer[4], 4);
 		// Serial.println("[CAN] Encoder Data Recv");
 	}
-	else if (cmdId == CANConfig::CMD_ID_GET_ERROR && packetSize >= 4)
+	else if (cmd_id == CANConfig::GET_ERROR && packet_size >= 4)
 	{
 		uint8_t buffer[4];
 		CAN.readBytes(buffer, 4);
-		memcpy(&hcs.activeErrors, &buffer[0], 4);
+		memcpy(&hcs.wheels[node_id].activeErrors, &buffer[0], 4);
 		
-		Serial.print("[CAN] ODrive ERROR: "); Serial.println(hcs.activeErrors, HEX);
-		Network::sendErrorMessage(hcs.activeErrors); // Funkcja z Network.h
+		// SIDE- 0: left, 1: right
+		// node id - 0: front, 1: rear
+		Serial.print("[CAN] ODrive id "); Serial.print(node_id); Serial.print(HardwareConfig::SIDE);
+		Serial.print(" ERROR: "); Serial.println(hcs.wheels[node_id].activeErrors, HEX);
+		Network::sendErrorMessage(node_id, hcs.wheels[node_id].activeErrors); // Funkcja z Network.h
 	}
 }

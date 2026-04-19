@@ -49,7 +49,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 	}
     // Serial.print("[MQTT] Recv Topic: "); Serial.println(topic);
     
-    if (length > 512) {
+    if (length > NetworkConfig::MAX_JSON_PAYLOAD) {
         Serial.println("[MQTT] ERROR: Payload too big!");
         return; 
     }
@@ -68,11 +68,23 @@ void callback(char* topic, byte* payload, unsigned int length)
     }
     else if (strcmp(topic, NetworkConfig::TOPIC_CMD) == 0)
     {
-        ns_->lastMqttCmdTime = millis();
-        Serial.print("Komenda MQTT: ");
-        Serial.println((char *) payload);
+		Serial.print("[MQTT] Payload: ");
+		for (unsigned int i = 0; i < length; i++) {
+			Serial.print((char)payload[i]);
+		}
+		Serial.println();
+		
+		StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> doc;
+        DeserializationError error = deserializeJson(doc, payload, length);
+		if(error)
+        {
+            Serial.print("[MQTT] Failed to deserialize the JSON!"); Serial.println(error.c_str());
+            return;
+        }
 
-		NetworkHandlers::controlCmdHandler((char *) payload);
+		
+        ns_->lastMqttCmdTime = millis();
+		NetworkHandlers::controlCmdHandler(doc);
     }
 }
 
@@ -162,7 +174,7 @@ void Network::sendFeedbackMessage(struct HardwareCommandState &hcs)
 	NetworkHandlers::feedbackEncHandler(*ns_, hcs);
 }
 
-void Network::sendErrorMessage(uint32_t errorDesc)
+void Network::sendErrorMessage(const CANConfig::ODriveId node_id, uint32_t errorDesc)
 {
 	if(ns_ == nullptr)
 	{
@@ -176,5 +188,5 @@ void Network::sendErrorMessage(uint32_t errorDesc)
 		return;
 	}
 
-	NetworkHandlers::errorEncHandler(*ns_, errorDesc);
+	NetworkHandlers::errorEncHandler(*ns_, node_id, errorDesc);
 }

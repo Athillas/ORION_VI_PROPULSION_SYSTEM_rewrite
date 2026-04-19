@@ -1,3 +1,4 @@
+# main.py
 import tkinter as tk
 from utils import AppState
 from inputs import InputManager
