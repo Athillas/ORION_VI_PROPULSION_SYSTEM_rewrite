@@ -10,6 +10,7 @@ import matplotlib
 from matplotlib import widgets
 from numpy import true_divide
 
+from comms import MqttManager
 from utils import AppState
 matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -22,7 +23,7 @@ class DashboardGUI:
         self.root = root
         self.state:AppState = app_state
         self.input_manager = input_manager
-        self.mqtt_manager = mqtt_manager
+        self.mqtt_manager: MqttManager = mqtt_manager
         
         # Dane do wykresu
         self.plot_data_x = deque(maxlen=200)
