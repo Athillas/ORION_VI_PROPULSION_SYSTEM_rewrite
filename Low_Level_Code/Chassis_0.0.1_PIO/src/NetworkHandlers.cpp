@@ -19,7 +19,8 @@ void NetworkHandlers::setVelocityHandler(
 {
     if (doc["velocity"].is<float>())
     {
-        hcs.wheels[0].targetVelocity = hcs.wheels[1].targetVelocity = doc["velocity"];
+        hcs.wheels[0].targetVelocity = doc["velocity"];
+        hcs.wheels[1].targetVelocity = doc["velocity"];
         Serial.println(hcs.wheels[0].targetVelocity);
     }
     
@@ -29,7 +30,9 @@ void NetworkHandlers::setVelocityHandler(
         if (s < -1.0f) s = -1.0f;
         if (s > 1.0f) s = 1.0f;
             
-        hcs.wheels[0].targetSteering = hcs.wheels[1].targetSteering = s;
+        hcs.wheels[0].targetSteering = s;
+        hcs.wheels[1].targetSteering = s;
+        
         Serial.print("[MQTT] New Steering Target: "); Serial.println(hcs.wheels[1].targetSteering);
     }
 }

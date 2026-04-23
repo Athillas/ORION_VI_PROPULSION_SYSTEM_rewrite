@@ -10,16 +10,16 @@
 
 void ODriveCAN::initCAN()
 {
-	Serial.println("Init CAN...");
+	Serial.println("[CAN] Init CAN...");
 	CAN.setPins(Pins::CAN_RX_PIN, Pins::CAN_TX_PIN);
 	if (!CAN.begin(CANConfig::CAN_BAUD_RATE))
 	{
-		Serial.println("ERROR: CAN Init Failed!");
+		Serial.println("[CAN ERROR]: CAN Init Failed!");
 		while(1); // Zatrzymaj, jeśli CAN nie działa
 	}
 	else
 	{
-		Serial.println("CAN Init OK");
+		Serial.println("[CAN] CAN Init OK");
 	}
 }
 

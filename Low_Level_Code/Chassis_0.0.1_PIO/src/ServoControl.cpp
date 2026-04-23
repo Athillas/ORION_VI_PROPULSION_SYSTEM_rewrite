@@ -16,12 +16,12 @@ static TaskHandle_t ServoTaskHandle;
 
 void ServoControl::initServo(struct HardwareCommandState &hcs)
 {
-    Serial.print("Init LEDC on Pin "); Serial.print(Pins::SERVO_PIN); Serial.println("...");
+    Serial.print("[SERVO] Init LEDC on Pin "); Serial.print(Pins::SERVO_PIN); Serial.println("...");
     // This single line sets the frequency and resolution and attaches the pin
     ledcAttach(Pins::SERVO_PIN, HardwareConfig::LEDC_FREQ, HardwareConfig::LEDC_RESOLUTION);
     setServoMicroseconds(HardwareConfig::MID_PULSE);
     
-    Serial.println("Creating Servo Task...");
+    Serial.println("[SERVO] Creating Servo Task...");
     xTaskCreate(
         servoTask,    // Funkcja
         "ServoTask",  // Nazwa
@@ -30,7 +30,7 @@ void ServoControl::initServo(struct HardwareCommandState &hcs)
         1,            // Priorytet
         &ServoTaskHandle // Uchwyt
     );
-    Serial.println("LEDC & Task Init OK");
+    Serial.println("[SERVO] LEDC & Task Init OK");
 }
 
 void ServoControl::setServoMicroseconds(int us)
@@ -44,7 +44,7 @@ void ServoControl::setServoMicroseconds(int us)
 
 void ServoControl::servoTask(void * parameter)
 {
-    Serial.println("[TASK] Servo Task STARTED");
+    Serial.println("[SERVO TASK] Servo Task STARTED");
 
     HardwareCommandState* hcs = (HardwareCommandState*)parameter;
 

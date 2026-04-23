@@ -90,7 +90,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 void Network::initNetwork(struct NetworkState &ns, struct HardwareCommandState &hcs)
 {
-    Serial.println("Init Ethernet...");
+    Serial.println("[ETH] Init Ethernet...");
 
 	ns_ = &ns;
 	hcs_ = &hcs;
@@ -106,10 +106,10 @@ void Network::initNetwork(struct NetworkState &ns, struct HardwareCommandState &
     
     if (Ethernet.hardwareStatus() == EthernetNoHardware)
 	{
-        Serial.println("ERROR: W5500 not found!");
+        Serial.println("[ETH] ERROR: W5500 not found!");
     } else
 	{
-        Serial.print("Ethernet IP_: "); Serial.println(Ethernet.localIP());
+        Serial.print("[ETH] Ethernet IP_: "); Serial.println(Ethernet.localIP());
     }
     
     ns.client.setServer(NetworkConfig::MQTT_SERVER_ID, NetworkConfig::MQTT_PORT);

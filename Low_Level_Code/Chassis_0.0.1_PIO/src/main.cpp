@@ -22,19 +22,24 @@
 struct NetworkState ns {};
 struct HardwareCommandState hcs {};
 
+
+// Yellow- CAN HIGH
+
 // --- SETUP ---
 void setup()
 {
     Serial.begin(HardwareConfig::SERIAL_BAUD_RATE);
     delay(1000); 
-    Serial.println("\n\n>>> SYSTEM BOOT START <<<");
+    Serial.println("\n\n>>> SYSTEM BOOT START <<<\n");
 
     // Inicjalizacja modułów
     ServoControl::initServo(hcs);
+    Serial.println();
     Network::initNetwork(ns, hcs);
+    Serial.println();
     ODriveCAN::initCAN();
 
-    Serial.println(">>> SETUP COMPLETE <<<");
+    Serial.println("\n>>> SETUP COMPLETE <<<");
 }
 
 // ==========================================
@@ -49,7 +54,8 @@ void loop()
         if (hcs.wheels[0].targetVelocity != 0.0f || hcs.wheels[1].targetVelocity != 0.0f)
         {
             Serial.println("!!! WATCHDOG: Utrata polaczenia - STOP !!!");
-            hcs.wheels[0].targetVelocity = hcs.wheels[1].targetVelocity = 0.0f;
+            hcs.wheels[0].targetVelocity = 0.0f;
+            hcs.wheels[1].targetVelocity = 0.0f;
         }
     }
 
