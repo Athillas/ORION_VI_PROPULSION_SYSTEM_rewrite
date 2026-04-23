@@ -7,6 +7,8 @@
 #include <Arduino.h>
 
 // Dołączamy nasze moduły
+#include "Pins.h"
+
 #include "ServoControl.h"
 #include "ODriveCAN.h"
 #include "Network.h"
@@ -32,7 +34,10 @@ void setup()
     delay(1000); 
     Serial.println("\n\n>>> SYSTEM BOOT START <<<\n");
 
+    
     // Inicjalizacja modułów
+    Pins::init_pins();
+    Serial.println();
     ServoControl::initServo(hcs);
     Serial.println();
     Network::initNetwork(ns, hcs);

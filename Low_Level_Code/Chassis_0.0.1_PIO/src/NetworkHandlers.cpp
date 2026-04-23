@@ -12,7 +12,7 @@
 #include "Configs/NetworkConfig.h"
 
 void NetworkHandlers::setVelocityHandler(
-    StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> &doc,
+    StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc,
     struct NetworkState &ns,
     struct HardwareCommandState &hcs
 )
@@ -126,7 +126,7 @@ static inline void handleODriveCommands(JsonArray payload)
     }
 }
 
-void NetworkHandlers::controlCmdHandler(StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> &doc)
+void NetworkHandlers::controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc)
 {
     if(!doc.is<JsonArray>())
     {
