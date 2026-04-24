@@ -122,7 +122,7 @@ void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
 
     // bits 0-4: command id, bits 5-10: node id
     CANConfig::ODriveCommand cmd_id = (CANConfig::ODriveCommand) (CAN.packetId() & 0x1F); // Extracting bits 0-4
-    CANConfig::ODriveId node_id = (CANConfig::ODriveId) ((CAN.packetId() >> 5) & 0x3F); // Extracting bits 5-10
+    CANConfig::ODriveId node_id = CANConfig::FRONT; //(CANConfig::ODriveId) ((CAN.packetId() >> 5) & 0x3F); // Extracting bits 5-10
     bool isRtr = CAN.packetRtr(); // Check if it's a Remote Transmission Request
 
     if (node_id >= 2)
@@ -145,6 +145,14 @@ void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
         {
             uint32_t currentError;
             memcpy(&currentError, &buffer[0], 4);
+
+            Serial.print("\n\n\n\n\n[CAN] Side: "); 
+            Serial.print(HardwareConfig::SIDE == 0 ? "LEFT" : "RIGHT");
+            Serial.print(" | Node: "); 
+            Serial.print(node_id); 
+            Serial.print(" | Error: 0x");
+            Serial.println(currentError, HEX);
+            Serial.println("\n\n\n\n\n\n");
 
             // --- Heartbeat Logging ---
             Serial.print("[CAN] ODrive id "); Serial.print(node_id); Serial.print(HardwareConfig::SIDE);

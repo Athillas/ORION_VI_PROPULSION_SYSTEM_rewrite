@@ -79,7 +79,7 @@ static inline void handleODriveCommands(JsonArray payload)
         o_drive_commands[0] = o_drive_commands[1] = payload[4];
     }
 
-    for(uint8_t i = 0; i < 2; i++)
+    for(uint8_t i = 0; i < 1; i++)
     {
         switch(o_drive_commands[i])
         {

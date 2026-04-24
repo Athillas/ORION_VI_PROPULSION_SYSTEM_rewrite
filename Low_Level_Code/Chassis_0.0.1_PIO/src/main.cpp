@@ -74,10 +74,10 @@ void loop()
     {
         lastCanCycle = now;
         // Serial.println("[CAN] Sending Vel...");
-        ODriveCAN::sendVelocity(hcs.wheels[0].targetVelocity, CANConfig::FRONT);
+        ODriveCAN::sendVelocity(hcs.wheels[CANConfig::FRONT].targetVelocity, CANConfig::FRONT);
         //ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
 
-        ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
+        //ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
         //ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
     }
 

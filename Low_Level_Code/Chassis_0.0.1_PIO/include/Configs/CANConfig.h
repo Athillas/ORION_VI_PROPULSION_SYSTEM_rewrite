@@ -42,14 +42,14 @@ namespace CANConfig
     
     enum ODriveControlCmd : uint8_t
     {
-        AXIS_STATE_ENCODER_OFFSET_CALIBRATION               = 7,
+        AXIS_STATE_ENCODER_OFFSET_CALIBRATION               = 7, //7
         AXIS_STATE_CLOSED_LOOP_CONTROL                      = 8,
         CONTROL_MODE_VELOCITY_CONTROL                       = 2,
         INPUT_MODE_PASSTHROUGH                              = 1,
         INPUT_MODE_VEL_RAMP                                 = 2,
     };
 
-    constexpr inline uint8_t getPacketId(CANConfig::ODriveId id, CANConfig::ODriveCommand cmd)
+    constexpr inline uint16_t getPacketId(CANConfig::ODriveId id, CANConfig::ODriveCommand cmd)
     {
         return (id << 5) | cmd;
     }
