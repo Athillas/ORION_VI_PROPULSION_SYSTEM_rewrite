@@ -53,14 +53,16 @@ class MqttManager:
         try:
             # Dekodowanie JSON dokładnie tak jak w Twoim pliku
             payload = json.loads(msg.payload.decode())
+            self.state.log(f"{payload}")
             
             if "error" in payload:
                 if "odrive_id" in payload:
                     self.state.log(f"!! ERROR: {payload['error']} (odrive_id: {payload['odrive_id']})")
                 self.state.log(f"!! ERROR: {payload['error']} (odrive_id: -)")
 
-            if not isinstance(payload, list) or payload.count != 5:
-                self.state.log(f"!! ERROR: feedback data is of a wrong format: " + str(list))
+            if not isinstance(payload, list) or len(payload) != 5:
+                self.state.log(f"!! ERROR: feedback data is of a wrong format: {payload}")
+                return # You probably want to return/exit here so it doesn't crash on the next lines!
 
             side:int8 = payload[0]
             estimate_lag_sum:float = 0

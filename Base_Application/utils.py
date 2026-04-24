@@ -66,5 +66,9 @@ class AppState:
         # Narzędzia
         self.latency_estimator = LatencyEstimator(maxlen=100)
 
+        self.ping_broker_ok = False
+        self.ping_router_ok = False
+        self.ping_ground_ok = False
+
     def log(self, message):
         self.logs.append(message)

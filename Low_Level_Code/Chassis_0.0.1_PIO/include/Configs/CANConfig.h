@@ -7,8 +7,10 @@
 
 namespace CANConfig
 {
-    constexpr uint32_t CAN_BAUD_RATE                        = 500000;
+    constexpr uint32_t CAN_BAUD_RATE                        = 500000; // 500000
     constexpr uint8_t CAN_CYCLE_DELAY                       = 50;
+
+    constexpr uint8_t HEARTBEAT                             = 0x01;
     
     enum ODriveId : uint8_t 
     {

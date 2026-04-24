@@ -9,7 +9,7 @@ namespace NetworkConfig
     // --- Network adresses ---
     constexpr uint16_t MQTT_PORT                    = 1883;
     constexpr const char *const MQTT_SERVER_IP      = "192.168.1.1"; 
-    constexpr const char *const MQTT_SERVER_ID      = "ESP32_ODrive";
+    constexpr const char *const MQTT_SERVER_ID      = "";
     constexpr uint8_t MAC[6]                        = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
     constexpr uint8_t IP[4]                         = {192, 168, 1, 177};
 

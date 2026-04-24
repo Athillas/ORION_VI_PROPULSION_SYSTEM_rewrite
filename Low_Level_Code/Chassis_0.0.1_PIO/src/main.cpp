@@ -33,7 +33,6 @@ void setup()
     Serial.begin(HardwareConfig::SERIAL_BAUD_RATE);
     delay(1000); 
     Serial.println("\n\n>>> SYSTEM BOOT START <<<\n");
-
     
     // Inicjalizacja modułów
     Pins::init_pins();
@@ -53,11 +52,13 @@ void setup()
 void loop()
 {
     uint32_t now = millis();
-    
+ 
     if (now - ns.lastMqttCmdTime > NetworkConfig::MQTT_SAFETY_TIMEOUT)
     {
+        Serial.println("[LOOP] 12");
         if (hcs.wheels[0].targetVelocity != 0.0f || hcs.wheels[1].targetVelocity != 0.0f)
         {
+            Serial.println("[LOOP] 13");
             Serial.println("!!! WATCHDOG: Utrata polaczenia - STOP !!!");
             hcs.wheels[0].targetVelocity = 0.0f;
             hcs.wheels[1].targetVelocity = 0.0f;
@@ -74,12 +75,13 @@ void loop()
         lastCanCycle = now;
         // Serial.println("[CAN] Sending Vel...");
         ODriveCAN::sendVelocity(hcs.wheels[0].targetVelocity, CANConfig::FRONT);
-        ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
+        //ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
 
         ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
-        ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
+        //ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
     }
 
+    
     // 3. Odbiór danych z CAN
     ODriveCAN::handleCANMessages(hcs);
 

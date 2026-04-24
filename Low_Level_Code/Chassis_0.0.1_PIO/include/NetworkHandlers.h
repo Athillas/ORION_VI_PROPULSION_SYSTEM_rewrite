@@ -13,12 +13,12 @@
 namespace NetworkHandlers
 {
     void setVelocityHandler(
-        StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> &doc,
+        StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc,
         struct NetworkState &ns,
         struct HardwareCommandState &hcs
     );
 
-    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MAX_JSON_PAYLOAD> &doc);
+    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc);
 
     void feedbackEncHandler(
         struct NetworkState &ns, const struct HardwareCommandState &hfs

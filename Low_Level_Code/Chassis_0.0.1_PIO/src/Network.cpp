@@ -37,6 +37,7 @@ namespace
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
+	Serial.println("Callback");
     if(ns_ == nullptr)
 	{
 		Serial.print("[MQTT] Local copy of NetworkState is not initialized in Network.cpp file! Call the initNetwork() before using other methods. Stopping.");
@@ -132,7 +133,7 @@ void Network::initNetwork(struct NetworkState &ns, struct HardwareCommandState &
 		Serial.println("[MQTT] WARNING: Network cable IS NOT connected at start!");
 	}
     
-    ns_->client.setServer(NetworkConfig::MQTT_SERVER_ID, NetworkConfig::MQTT_PORT);
+    ns_->client.setServer(NetworkConfig::MQTT_SERVER_IP, NetworkConfig::MQTT_PORT);
     ns_->client.setCallback(callback);
     ns_->client.setBufferSize(NetworkConfig::MQTT_MAX_JSON_PAYLOAD);
 }
