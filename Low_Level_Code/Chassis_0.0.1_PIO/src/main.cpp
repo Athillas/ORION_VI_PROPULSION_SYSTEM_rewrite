@@ -77,7 +77,7 @@ void loop()
         ODriveCAN::sendVelocity(hcs.wheels[CANConfig::FRONT].targetVelocity, CANConfig::FRONT);
         //ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
 
-        //ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
+        ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
         //ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
     }
 

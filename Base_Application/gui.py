@@ -534,7 +534,9 @@ class DashboardGUI:
         self.plot_data_x.append(ct)
         self.plot_data_target.append(self.state.target_rps)
         # Mean value is taken for the plot
-        self.plot_data_meas.append(sum(item.measured_velocity for item in self.state.o_drives.values()) / len(self.state.o_drives))
+        #self.plot_data_meas.append(sum(item.measured_velocity for item in self.state.o_drives.values()) / len(self.state.o_drives))
+        
+        self.plot_data_meas.append(self.state.o_drives["00"].measured_velocity)
 
         if self.plot_counter % config.PLOT_SKIP_FRAMES == 0 and len(self.plot_data_x) > 1:
             self.line_target.set_data(self.plot_data_x, self.plot_data_target)
