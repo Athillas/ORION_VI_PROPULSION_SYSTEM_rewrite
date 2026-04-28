@@ -72,7 +72,7 @@ void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
     */
     ns.lastMqttCmdTime = millis(); // watchdog actualization
 
-    if(!doc.is<JsonArray>() || (!doc.as<JsonArray>().size() == 5))
+    if(!doc.is<JsonArray>() || doc.as<JsonArray>().size() != 5)
     {
         Serial.println("[MQTT] ERROR: Controller command packet is not a 5 element JsonAray!");
     }
@@ -114,6 +114,8 @@ void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
                     Serial.println("[CAN] ERROR: Incorrect axis state at encoder offset calibratio stage! Reboot the ODrive and try again.");
                     Network::sendErrorMessage(i, 0x100);
                 }
+                ODriveCAN::clearErrors(i);
+                delay(100);
                 ODriveCAN::setAxisState(i, ODriveAxisState::ENCODER_OFFSET_CALIBRATION);
                 delay(100);
                 break;
@@ -125,6 +127,8 @@ void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
                     Serial.println("[CAN] ERROR: Incorrect axis state at closed loop stage! Reboot the ODrive and try again.");
                     break;
                 }
+                ODriveCAN::clearErrors(i);
+                delay(100);
                 ODriveCAN::setAxisState(i, ODriveAxisState::CLOSED_LOOP_CONTROL);
                 delay(100);
                 break;
@@ -134,6 +138,8 @@ void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
                     Serial.println("[CAN] ERROR: Incorrect axiss state at set_vel_mode stage! Reboot the ODrive and try again.");
                     break;
                 }
+                ODriveCAN::clearErrors(i);
+                delay(100);
                 ODriveCAN::setControlMode(i, CANConfig::CONTROL_MODE_VELOCITY_CONTROL, ODriveInputMode::PASSTHROUGH);
                 delay(100);
                 break;

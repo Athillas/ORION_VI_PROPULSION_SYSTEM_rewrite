@@ -129,6 +129,12 @@ void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
     uint8_t node_id = ((packet_id >> 5) & 0x3F); // Extracting bits 5-10
     uint8_t buffer[8]{};
 
+    if(node_id > 2)
+    {
+        Serial.println("[CAN] CRITICAL ERROR: Node id out of bounds!");
+        return;
+    }
+
     for(uint8_t i = 0; i < packet_size && i < 8; i++)
     {
         buffer[i] = CAN.read();
