@@ -10,15 +10,15 @@
 
 #include "Configs/NetworkConfig.h"
 
-
 struct NetworkState
 {
     IPAddress ip;
     EthernetClient ethClient;
     PubSubClient client;
-    uint32_t lastMqttCmdTime = 0;
+    uint32_t lastMqttCmdTime;
+    uint8_t calibration_stage[2];
 
-    NetworkState() : client(ethClient) {
+    NetworkState() : client(ethClient), lastMqttCmdTime(0), calibration_stage {0,0} {
         ip = IPAddress(
             NetworkConfig::IP[0], NetworkConfig::IP[1], 
             NetworkConfig::IP[2], NetworkConfig::IP[3]

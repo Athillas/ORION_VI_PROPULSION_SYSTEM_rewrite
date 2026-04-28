@@ -10,23 +10,22 @@ namespace CANConfig
     constexpr uint32_t CAN_BAUD_RATE                        = 500000; // 500000
     constexpr uint8_t CAN_CYCLE_DELAY                       = 50;
 
-    constexpr uint8_t HEARTBEAT                             = 0x01;
-    
     enum ODriveId : uint8_t 
     {
         FRONT                                               = 0,
         REAR                                                = 1
     };
 
-    enum ODriveCommand : uint8_t
+    enum ODriveFeedbackCommand : uint8_t
     {
+        HEARTBEAT                                           = 0x001,
         GET_ERROR                                           = 0x003,
         SET_AXIS_STATE                                      = 0x007,
         GET_ENCODER                                         = 0x009,
         SET_CONTROLLER_MODE                                 = 0x00B,
         SET_INPUT_VEL                                       = 0x00D,
         REBOOT_ODRIVE                                       = 0x016,
-        CLEAR_ERRORS                                        = 0x018,
+        CLEAR_ERRORS                                        = 0x018
     };
 
     enum ODriveControlPacketCommand : uint8_t
@@ -49,22 +48,10 @@ namespace CANConfig
         INPUT_MODE_VEL_RAMP                                 = 2,
     };
 
-    constexpr inline uint16_t getPacketId(CANConfig::ODriveId id, CANConfig::ODriveCommand cmd)
+    constexpr inline uint16_t getPacketId(CANConfig::ODriveId id, CANConfig::ODriveFeedbackCommand cmd)
     {
         return (id << 5) | cmd;
     }
-
-    // enum PacketId : uint8_t
-    // {
-    //     GET_ERRORS				                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_GET_ERROR,
-    //     SET_AXIS_STATE 			                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_SET_AXIS_STATE,
-    //     GET_ENCODER				                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_GET_ENCODER,
-    //     SET_CONTROL_MODE 		                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_SET_CONTROLLER_MODE,
-    //     SET_INPUT_VEL 			                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_SET_INPUT_VEL,
-    //     REBOOT_ODRIVE			                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_REBOOT_ODRIVE,
-    //     CLEAR_ERRORS			                                = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_CLEAR_ERRORS,
-    //     REQUEST_ODRIVE_ERRORS 	                            = (CANConfig::ODriveId::FRONT << 5) | CANConfig::ODriveCommand::CMD_ID_GET_ERROR,
-    // };
 }
 
 #endif

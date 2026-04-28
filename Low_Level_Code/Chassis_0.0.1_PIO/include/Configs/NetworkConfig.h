@@ -27,6 +27,15 @@ namespace NetworkConfig
     constexpr uint16_t MQTT_CRITICAL_TIMEOUT        = 300000; // 5 minutes
 
     constexpr uint16_t MQTT_MAX_JSON_PAYLOAD        = 256;
+
+    enum CalibrationStage : uint8_t
+    {
+        UNINITIALIZED = 0,
+        CALIBRATION = 1,
+        CLOSED_LOOP = 2,
+        VELOCITY_MODE = 3,
+        RAMP_MODE = 4
+    };
 }
 
 #endif

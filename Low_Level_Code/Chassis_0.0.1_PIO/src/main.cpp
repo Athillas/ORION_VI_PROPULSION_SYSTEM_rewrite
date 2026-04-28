@@ -24,7 +24,6 @@
 struct NetworkState ns {};
 struct HardwareCommandState hcs {};
 
-
 // Yellow- CAN HIGH
 
 // --- SETUP ---
@@ -69,17 +68,19 @@ void loop()
     Network::handleNetwork();
 
     // 2. Wysyłanie do ODrive (CAN) co 50ms
+    /*
     static uint32_t lastCanCycle = 0;
-    if (now - lastCanCycle > CANConfig::CAN_CYCLE_DELAY)
+    if (now - lastCanCycle > CANConfig::CAN_CYCLE_DELAY /*&& hcs.wheels[0].axisState == CANConfig::AXIS_STATE_CLOSED_LOOP_CONTROL*//*)
     {
         lastCanCycle = now;
         // Serial.println("[CAN] Sending Vel...");
         ODriveCAN::sendVelocity(hcs.wheels[CANConfig::FRONT].targetVelocity, CANConfig::FRONT);
-        //ODriveCAN::sendVelocity(hcs.wheels[1].targetVelocity, CANConfig::REAR);
+        //ODriveCAN::sendVelocity(hcs.wheels[CANConfig::REAR].targetVelocity, CANConfig::REAR);
 
-        //ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
+        ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
         //ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
     }
+    */
 
     
     // 3. Odbiór danych z CAN

@@ -71,7 +71,8 @@ void callback(char* topic, byte* payload, unsigned int length)
     else if (strcmp(topic, NetworkConfig::TOPIC_CMD) == 0)
     {
 		Serial.print("[MQTT] Payload: ");
-		for (unsigned int i = 0; i < length; i++) {
+		for (unsigned int i = 0; i < length; i++)
+		{
 			Serial.print((char)payload[i]);
 		}
 		Serial.println();
@@ -86,7 +87,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 		
         ns_->lastMqttCmdTime = millis();
-		NetworkHandlers::controlCmdHandler(doc);
+		NetworkHandlers::controlCmdHandler(doc, *hcs_);
     }
 }
 
@@ -112,8 +113,6 @@ void Network::initNetwork(struct NetworkState &ns, struct HardwareCommandState &
     digitalWrite(Pins::ETH_RST_PIN, HIGH);
 	delay(200);
 	Serial.println("[MQTT] WizNet reset successful.");
-    // digitalWrite(Pins::ETH_RST_PIN, LOW); delay(100);
-    // digitalWrite(Pins::ETH_RST_PIN, HIGH); delay(200);
 
     Ethernet.init(Pins::ETH_CS_PIN);
     Ethernet.begin(MAC_, IP_);

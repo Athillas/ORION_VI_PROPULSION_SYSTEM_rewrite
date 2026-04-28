@@ -18,7 +18,7 @@ namespace NetworkHandlers
         struct HardwareCommandState &hcs
     );
 
-    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc);
+    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc, struct HardwareCommandState &hcs);
 
     void feedbackEncHandler(
         struct NetworkState &ns, const struct HardwareCommandState &hfs

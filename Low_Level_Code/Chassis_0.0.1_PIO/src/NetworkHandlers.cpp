@@ -44,7 +44,7 @@ void NetworkHandlers::setVelocityHandler(
 // Base -> {wheels_left, wheels right}
 
 
-static inline void handleODriveCommands(JsonArray payload)
+static void handleODriveCommands(JsonArray payload, HardwareCommandState &hcs)
 {
     CANConfig::ODriveControlPacketCommand o_drive_commands[2];
     uint8_t startIdx = HardwareConfig::SIDE ? 2 : 0; // Right side starts at index 2, Left at 0
@@ -68,7 +68,6 @@ static inline void handleODriveCommands(JsonArray payload)
             6 - reboot_odrive
     */
 
-
     if(payload[4] == 0) // No override
     {
         o_drive_commands[0] = payload[startIdx];     // Front
@@ -79,54 +78,145 @@ static inline void handleODriveCommands(JsonArray payload)
         o_drive_commands[0] = o_drive_commands[1] = payload[4];
     }
 
-    for(uint8_t i = 0; i < 1; i++)
-    {
-        switch(o_drive_commands[i])
+    switch(o_drive_commands[0])
         {
             case CANConfig::CALIBRATE:
+                //if(calibration_stage[0] != NetworkConfig::UNINITIALIZED) break;
+
+                ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
                 ODriveCAN::setAxisState(
                     CANConfig::AXIS_STATE_ENCODER_OFFSET_CALIBRATION,
-                    static_cast<CANConfig::ODriveId>(i)
+                    static_cast<CANConfig::ODriveId>(0)
                 );
+                //calibration_stage[0] = NetworkConfig::CALIBRATION;
                 break;
             case CANConfig::CLOSED_LOOP:
+                //if(calibration_stage[0] != NetworkConfig::CALIBRATION) break;
+
+                //ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
                 ODriveCAN::setAxisState(
                     CANConfig::AXIS_STATE_CLOSED_LOOP_CONTROL,
-                    static_cast<CANConfig::ODriveId>(i)
+                    static_cast<CANConfig::ODriveId>(0)
                 );
+                //calibration_stage[0] = NetworkConfig::CLOSED_LOOP;
                 break;
             case CANConfig::SET_VEL_MODE:
+                //if(calibration_stage[0] != NetworkConfig::CLOSED_LOOP) break;
+
+                //ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
                 ODriveCAN::setControlMode(
                     CANConfig::CONTROL_MODE_VELOCITY_CONTROL,
                     CANConfig::INPUT_MODE_PASSTHROUGH,
-                    static_cast<CANConfig::ODriveId>(i)
+                    static_cast<CANConfig::ODriveId>(0)
                 );
                 Serial.println(">> Tryb: VELOCITY PASSTHROUGH");
+
+                //calibration_stage[0] = NetworkConfig::VELOCITY_MODE;
                 break;
             case CANConfig::SET_RAMP_MODE:
+                //if(calibration_stage[0] != NetworkConfig::VELOCITY_MODE) break;
+                //ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
                 ODriveCAN::setControlMode(
                     CANConfig::CONTROL_MODE_VELOCITY_CONTROL,
                     CANConfig::INPUT_MODE_VEL_RAMP,
-                    static_cast<CANConfig::ODriveId>(i)
+                    static_cast<CANConfig::ODriveId>(0)
                 );
                 Serial.println(">> Tryb: VELOCITY RAMP");
+                //calibration_stage[0] = NetworkConfig::RAMP_MODE;
                 break;
             case CANConfig::DUMP_ERRORS:
-                ODriveCAN::requestODriveErrors(static_cast<CANConfig::ODriveId>(i));
+                ODriveCAN::requestODriveErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
                 Serial.println(">> ODrive: Requesting Error Dump...");
                 break;
             case CANConfig::REBOOT_ODRIVE_CMD:
-                ODriveCAN::rebootODrive(static_cast<CANConfig::ODriveId>(i));
+                //calibration_stage[0] = NetworkConfig::UNINITIALIZED;
+                ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(0));
+                delay(50);
+                ODriveCAN::rebootODrive(static_cast<CANConfig::ODriveId>(0));
                 Serial.println(">> REBOOTING ODRIVE...");
                 break;
             default:
                 Serial.println("[MQTT] Critical! Unknown command");
                 break;
-        }
     }
+
+    // for(uint8_t i = 0; i < 2; i++)
+    // {
+    //     switch(o_drive_commands[i])
+    //     {
+    //         case CANConfig::CALIBRATE:
+    //             if(calibration_stage[i] != NetworkConfig::UNINITIALIZED) break;
+
+    //             ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             ODriveCAN::setAxisState(
+    //                 CANConfig::AXIS_STATE_ENCODER_OFFSET_CALIBRATION,
+    //                 static_cast<CANConfig::ODriveId>(i)
+    //             );
+    //             calibration_stage[i] = NetworkConfig::CALIBRATION;
+    //             break;
+    //         case CANConfig::CLOSED_LOOP:
+    //             if(calibration_stage[i] != NetworkConfig::CALIBRATION) break;
+
+    //             ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             ODriveCAN::setAxisState(
+    //                 CANConfig::AXIS_STATE_CLOSED_LOOP_CONTROL,
+    //                 static_cast<CANConfig::ODriveId>(i)
+    //             );
+    //             calibration_stage[i] = NetworkConfig::CLOSED_LOOP;
+    //             break;
+    //         case CANConfig::SET_VEL_MODE:
+    //             if(calibration_stage[i] != NetworkConfig::CLOSED_LOOP) break;
+
+    //             ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             ODriveCAN::setControlMode(
+    //                 CANConfig::CONTROL_MODE_VELOCITY_CONTROL,
+    //                 CANConfig::INPUT_MODE_PASSTHROUGH,
+    //                 static_cast<CANConfig::ODriveId>(i)
+    //             );
+    //             Serial.println(">> Tryb: VELOCITY PASSTHROUGH");
+
+    //             calibration_stage[i] = NetworkConfig::VELOCITY_MODE;
+    //             break;
+    //         case CANConfig::SET_RAMP_MODE:
+    //             if(calibration_stage[i] != NetworkConfig::VELOCITY_MODE) break;
+    //             ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             ODriveCAN::setControlMode(
+    //                 CANConfig::CONTROL_MODE_VELOCITY_CONTROL,
+    //                 CANConfig::INPUT_MODE_VEL_RAMP,
+    //                 static_cast<CANConfig::ODriveId>(i)
+    //             );
+    //             Serial.println(">> Tryb: VELOCITY RAMP");
+    //             calibration_stage[i] = NetworkConfig::RAMP_MODE;
+    //             break;
+    //         case CANConfig::DUMP_ERRORS:
+    //             ODriveCAN::requestODriveErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             Serial.println(">> ODrive: Requesting Error Dump...");
+    //             break;
+    //         case CANConfig::REBOOT_ODRIVE_CMD:
+    //             calibration_stage[i] = NetworkConfig::UNINITIALIZED;
+    //             ODriveCAN::clearErrors(static_cast<CANConfig::ODriveId>(i));
+    //             delay(50);
+    //             ODriveCAN::rebootODrive(static_cast<CANConfig::ODriveId>(i));
+    //             Serial.println(">> REBOOTING ODRIVE...");
+    //             break;
+    //         default:
+    //             Serial.println("[MQTT] Critical! Unknown command");
+    //             break;
+    //     }
+    // }
 }
 
-void NetworkHandlers::controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc)
+void NetworkHandlers::controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc, HardwareCommandState &hcs)
 {
     if(!doc.is<JsonArray>())
     {
@@ -159,7 +249,7 @@ void NetworkHandlers::controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_M
         }
     }
 
-    handleODriveCommands(payload);
+    handleODriveCommands(payload, hcs);
 }
 
 void NetworkHandlers::feedbackEncHandler(
@@ -199,7 +289,7 @@ void NetworkHandlers::errorEncHandler(
     char errBuf[64];
 
     // odrive_id: (node_id << 1) | side
-    snprintf(errBuf, sizeof(errBuf), "{\"error\": \"0x%X\", \"odrive_id\": %d%d}",
+    snprintf(errBuf, sizeof(errBuf), "{\"error\": \"0x%X\", \"odrive_id\": \"%d%d\"}",
         errorDesc,
         node_id,
         HardwareConfig::SIDE

@@ -14,6 +14,7 @@ struct HardwareCommandState
         float measuredPos;
         float measuredVel;
         uint32_t activeErrors;
+        uint8_t axisState;
     };
 
     ODriveWheel wheels[2];

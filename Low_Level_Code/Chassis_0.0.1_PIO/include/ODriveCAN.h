@@ -12,8 +12,8 @@ namespace ODriveCAN
 {
     void initCAN();
     void sendVelocity(float velocity, CANConfig::ODriveId id);
-    void setAxisState(int32_t state, CANConfig::ODriveId id);
-    void setControlMode(int32_t controlMode, int32_t inputMode, CANConfig::ODriveId id);
+    void setAxisState(uint32_t state, CANConfig::ODriveId id);
+    void setControlMode(uint32_t controlMode, uint32_t inputMode, CANConfig::ODriveId id);
     void requestODriveErrors(CANConfig::ODriveId id);
     void requestEncoderData(CANConfig::ODriveId id);
     void clearErrors(CANConfig::ODriveId id);
