@@ -50,14 +50,20 @@ class MqttManager:
     #]
     def _on_message(self, client, userdata, msg):
         try:
-            # Dekodowanie JSON dokładnie tak jak w Twoim pliku
             payload = json.loads(msg.payload.decode())
             
+<<<<<<< HEAD
             if "error" in payload:
                 if "odrive_id" in payload:
                     self.state.log(f"!! ERROR: {payload['error']} (odrive_id: {payload['odrive_id']})")
                 self.state.log(f"!! ERROR: {payload['error']} (odrive_id: -)")
                 return
+=======
+            if isinstance(payload, dict) and "error" in payload:
+                oid = payload.get("odrive_id", "-")
+                self.state.log(f"!! ODRIVE ERROR: {payload['error']} (ID: {oid})")
+                return # Exit here
+>>>>>>> 857a9a7e30b5fd92aedebac372ae782109051f0e
 
             if not isinstance(payload, list) or len(payload) != 5:
                 self.state.log(f"!! ERROR: feedback data is of a wrong format: {payload}")
