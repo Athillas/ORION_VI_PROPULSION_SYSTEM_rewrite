@@ -40,16 +40,15 @@ class MqttManager:
             self.state.mqtt_status_text = f"MQTT: Błąd {rc}"
             self.state.log(f"Błąd połączenia, kod: {rc}")
 
+    #feedback message:
+    #[
+    #   0: side (0- left|1- right)
+    #   1: measured velocity of the front ODrive
+    #   2: measured position of the front ODrive
+    #   3: measured velocity of the rear ODrive
+    #   4: measured position of the rear ODrive
+    #]
     def _on_message(self, client, userdata, msg):
-        # feedback message:
-        #[
-        #    0: side (0- left|1- right)
-        #    1: measured velocity of the front ODrive
-        #    2: measured position of the front ODrive
-        #    3: measured velocity of the rear ODrive
-        #    4: measured position of the rear ODrive
-        #]
-        #
         try:
             # Dekodowanie JSON dokładnie tak jak w Twoim pliku
             payload = json.loads(msg.payload.decode())
@@ -58,9 +57,11 @@ class MqttManager:
                 if "odrive_id" in payload:
                     self.state.log(f"!! ERROR: {payload['error']} (odrive_id: {payload['odrive_id']})")
                 self.state.log(f"!! ERROR: {payload['error']} (odrive_id: -)")
+                return
 
             if not isinstance(payload, list) or len(payload) != 5:
                 self.state.log(f"!! ERROR: feedback data is of a wrong format: {payload}")
+                return
 
             side:int8 = payload[0]
             estimate_lag_sum:float = 0
@@ -79,7 +80,7 @@ class MqttManager:
             
         except json.JSONDecodeError:
             raw = msg.payload.decode()
-            self.state.log(f"MSG (RAW): {raw}")
+            self.state.log(f"[JSON DECODE ERROR] MSG (RAW): {raw}")
         except Exception as e:
             # Ciche ignorowanie błędów parsowania, żeby nie spamować konsoli
             pass
@@ -108,6 +109,15 @@ class MqttManager:
         if not (self.client and self.state.mqtt_connected):
             return
 
+        #   command:
+        #   0 - no command,
+        #   1 - calibrate,
+        #   2 - closed_loop,
+        #   3 - set_vel_mode,
+        #   4 - set_ramp_mode,
+        #   5 - dump_errors,
+        #   6 - reboot_odrive
+        
         if cmd not in config.CMD_MAP:
             self.state.log(f"[MQTT] Unknown cmd: {cmd}")
             return

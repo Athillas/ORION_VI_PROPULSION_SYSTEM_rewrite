@@ -399,23 +399,30 @@ class DashboardGUI:
         self.btn_full_start.pack(fill="x", padx=10, pady=(10, 20))
         
         # (Tutaj powinna być reszta Twoich przycisków z oryginalnego pliku)
-        tk.Button(cmd_frame, text="1. KALIBRACJA", command=lambda: self.mqtt_manager.send_cmd("calibrate"), 
-                  bg="#AA8800", fg="white", height=1).pack(fill="x", padx=10, pady=2)
-                  
-        tk.Button(cmd_frame, text="2. CLOSED LOOP", command=lambda: self.mqtt_manager.send_cmd("closed_loop"), 
-                  bg="#006600", fg="white", height=1).pack(fill="x", padx=10, pady=2)
-                  
-        tk.Button(cmd_frame, text="3. TRYB VELOCITY", command=lambda: self.mqtt_manager.send_cmd("set_vel_mode"), 
-                  bg="#004488", fg="white", height=1).pack(fill="x", padx=10, pady=2)
-                  
-        tk.Button(cmd_frame, text="4. RAMP MODE", command=lambda: self.mqtt_manager.send_cmd("set_ramp_mode"), 
-                  bg="#550088", fg="white", height=1).pack(fill="x", padx=10, pady=2)
-
-        tk.Button(cmd_frame, text="DUMP ERRORS (odrv0)", command=lambda: self.mqtt_manager.send_cmd("dump_errors"), 
-                  bg=config.BTN_DUMP_COLOR, fg="white", height=1, font=("Arial", 10, "bold")).pack(fill="x", padx=10, pady=(10, 2))
+        self.btn_calib = tk.Button(cmd_frame, text="1. KALIBRACJA", command=lambda: self.mqtt_manager.send_cmd("calibrate"), 
+                  bg="#AA8800", fg="white", height=1)
         
-        tk.Button(cmd_frame, text="⚠ REBOOT ODRIVE", command=lambda: self.mqtt_manager.send_cmd("reboot_odrive"), 
-                  bg=config.BTN_REBOOT_COLOR, fg="white", height=1, font=("Arial", 10, "bold")).pack(fill="x", padx=10, pady=(10, 2))
+        self.btn_calib.pack(fill="x", padx=10, pady=2)
+                  
+        self.btn_closed_loop = tk.Button(cmd_frame, text="2. CLOSED LOOP", command=lambda: self.mqtt_manager.send_cmd("closed_loop"), 
+                  bg="#006600", fg="white", height=1)
+        self.btn_closed_loop.pack(fill="x", padx=10, pady=2)
+                  
+        self.btn_vel_mode = tk.Button(cmd_frame, text="3. TRYB VELOCITY", command=lambda: self.mqtt_manager.send_cmd("set_vel_mode"), 
+                  bg="#004488", fg="white", height=1)
+        self.btn_vel_mode.pack(fill="x", padx=10, pady=2)
+                  
+        self.btn_ramp_mode = tk.Button(cmd_frame, text="4. RAMP MODE", command=lambda: self.mqtt_manager.send_cmd("set_ramp_mode"), 
+                  bg="#550088", fg="white", height=1)
+        self.btn_ramp_mode.pack(fill="x", padx=10, pady=2)
+
+        self.btn_dump_errors = tk.Button(cmd_frame, text="DUMP ERRORS (odrv0)", command=lambda: self.mqtt_manager.send_cmd("dump_errors"), 
+                  bg=config.BTN_DUMP_COLOR, fg="white", height=1, font=("Arial", 10, "bold"))
+        self.btn_dump_errors.pack(fill="x", padx=10, pady=(10, 2))
+        
+        self.btn_reboot_odrive = tk.Button(cmd_frame, text="⚠ REBOOT ODRIVE", command=lambda: self.mqtt_manager.send_cmd("reboot_odrive"), 
+                  bg=config.BTN_REBOOT_COLOR, fg="white", height=1, font=("Arial", 10, "bold"))
+        self.btn_reboot_odrive.pack(fill="x", padx=10, pady=(10, 2))
 
     def refresh_joysticks(self):
         joysticks = self.input_manager.scan_joysticks()
@@ -441,8 +448,16 @@ class DashboardGUI:
     def _full_start_thread(self):
         self.state.log("\n=== FULL START SEQUENCE ===")
         self.mqtt_manager.send_cmd("calibrate")
-        
+
         self.btn_full_start.config(state="disabled", bg="#555555")
+
+        self.btn_calib.config(state="disabled", bg="#555555")
+        self.btn_closed_loop.config(state="disabled", bg="#555555")
+        self.btn_dump_errors.config(state="disabled", bg="#555555")
+        self.btn_ramp_mode.config(state="disabled", bg="#555555")
+        self.btn_reboot_odrive.config(state="disabled", bg="#555555")
+        self.btn_vel_mode.config(state="disabled", bg="#555555")
+        
         for i in range(10, 0, -1):
             self.root.after(0, lambda t=i: self.btn_full_start.config(text=f"CZEKAJ: {t}s..."))
             time.sleep(1)
@@ -455,7 +470,20 @@ class DashboardGUI:
         self.mqtt_manager.send_cmd("set_ramp_mode")
         
         self.state.log("=== FULL START ZAKOŃCZONY ===\n")
-        self.root.after(0, lambda: self.btn_full_start.config(text="★ FULL START (AUTO) ★", state="normal", bg=config.BTN_FULL_START_COLOR))
+
+        def enable_buttons():
+            self.btn_full_start.config(text="★ FULL START (AUTO) ★", state="normal", bg=config.BTN_FULL_START_COLOR)
+            self.btn_calib.config(state="normal", bg="#AA8800")
+            self.btn_closed_loop.config(state="normal", bg="#006600")
+
+            self.btn_vel_mode.config(state="normal", bg="#004488")
+
+            self.btn_ramp_mode.config(state="normal", bg="#550088")
+
+            self.btn_dump_errors.config(state="normal", bg=config.BTN_DUMP_COLOR)
+            self.btn_reboot_odrive.config(state="normal", bg=config.BTN_REBOOT_COLOR)
+        
+        self.root.after(0, enable_buttons)
 
     def update_interface(self):
         self.lbl_target.config(text=f"Target: {self.state.target_rps:.2f} RPS")
