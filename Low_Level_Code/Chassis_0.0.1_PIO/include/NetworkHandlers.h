@@ -13,12 +13,12 @@
 namespace NetworkHandlers
 {
     void setVelocityHandler(
-        StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc,
+        JsonDocument &doc,
         struct NetworkState &ns,
         struct HardwareCommandState &hcs
     );
 
-    void controlCmdHandler(StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> &doc, struct HardwareCommandState &hcs);
+    void controlCmdHandler(JsonDocument &doc, HardwareCommandState &hcs, NetworkState &ns);
 
     void feedbackEncHandler(
         struct NetworkState &ns, const struct HardwareCommandState &hfs
@@ -26,9 +26,19 @@ namespace NetworkHandlers
     
     void errorEncHandler(
         struct NetworkState &ns,
-        const CANConfig::ODriveId node_id,
+        const uint8_t node_id,
         const uint32_t errorDesc
     );
+
+    enum ODrivePacketCommand : uint8_t
+    {
+        CALIBRATE       = 0,
+        CLOSED_LOOP     = 1,
+        SET_VEL_MODE    = 2,
+        SET_RAMP_MODE   = 3,
+        DUMP_ERRORS     = 4,
+        REBOOT_ODRIVE   = 5
+    };
 }
 
 #endif

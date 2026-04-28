@@ -10,14 +10,15 @@
 
 #include "ODriveCAN.h"
 #include "Network.h"
-
 #include "NetworkHandlers.h"
+#include "StaticJsonMemoryAllocator.h"
 
 #include "Configs/CANConfig.h"
 #include "Configs/NetworkConfig.h"
 
 #include "States/HardwareCommandState.h"
 #include "States/NetworkState.h"
+
 
 namespace
 {
@@ -56,9 +57,14 @@ void callback(char* topic, byte* payload, unsigned int length)
         return; 
     }
 
+	// Stack buffer for the JSON document
+	uint8_t jsonBuffer[NetworkConfig::MQTT_MAX_JSON_PAYLOAD];
+
+	static StaticJsonMemoryAllocator allocator;
+	JsonDocument doc(&allocator);
+
     if (strcmp(topic, NetworkConfig::TOPIC_SET_VEL) == 0)
     {
-        StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> doc;
         DeserializationError error = deserializeJson(doc, payload, length);
         if(error)
         {
@@ -76,8 +82,6 @@ void callback(char* topic, byte* payload, unsigned int length)
 			Serial.print((char)payload[i]);
 		}
 		Serial.println();
-		
-		StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> doc;
         DeserializationError error = deserializeJson(doc, payload, length);
 		if(error)
         {
@@ -87,7 +91,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 		
         ns_->lastMqttCmdTime = millis();
-		NetworkHandlers::controlCmdHandler(doc, *hcs_);
+		NetworkHandlers::controlCmdHandler(doc, *hcs_, *ns_);
     }
 }
 
@@ -102,10 +106,6 @@ void Network::initNetwork(struct NetworkState &ns, struct HardwareCommandState &
 	
 	memcpy(MAC_, NetworkConfig::MAC, 6);
 	memcpy(IP_, NetworkConfig::IP, 4);
-    
-	// Now handled by Pins::init_pins() method.
-    // pinMode(Pins::ETH_RST_PIN, OUTPUT);
-    // SPI.begin(Pins::SPI_SCK_PIN, Pins::SPI_MISO_PIN, Pins::SPI_MOSI_PIN, Pins::ETH_CS_PIN);
 
 	Serial.println("[MQTT] Resetting the WizNet...");
 	digitalWrite(Pins::ETH_RST_PIN, LOW);
@@ -230,7 +230,7 @@ void Network::sendFeedbackMessage(struct HardwareCommandState &hcs)
 	NetworkHandlers::feedbackEncHandler(*ns_, hcs);
 }
 
-void Network::sendErrorMessage(const CANConfig::ODriveId node_id, uint32_t errorDesc)
+void Network::sendErrorMessage(const uint8_t node_id, uint32_t errorDesc)
 {
 	if(ns_ == nullptr)
 	{

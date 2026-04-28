@@ -24,7 +24,7 @@ namespace NetworkConfig
     constexpr uint16_t MQTT_SAFETY_TIMEOUT          = 1000;
     constexpr uint8_t MQTT_MAX_RECONNECTION_RETRIES = 10;
     constexpr uint16_t MQTT_RECONNECTION_TIMEOUT    = 5000;
-    constexpr uint16_t MQTT_CRITICAL_TIMEOUT        = 300000; // 5 minutes
+    constexpr uint32_t MQTT_CRITICAL_TIMEOUT        = 300000; // 5 minutes
 
     constexpr uint16_t MQTT_MAX_JSON_PAYLOAD        = 256;
 

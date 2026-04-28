@@ -12,7 +12,7 @@ namespace Network
     void initNetwork(struct NetworkState &ns, struct HardwareCommandState &hcs);
     void handleNetwork(); // Wywoływane w loop()
     void sendFeedbackMessage(struct HardwareCommandState &hcs);
-    void sendErrorMessage(const CANConfig::ODriveId node_id, uint32_t errorDesc);
+    void sendErrorMessage(const uint8_t node_id, uint32_t errorDesc);
 }
 
 #endif
