@@ -3,21 +3,22 @@
 #define NETWORK_CONFIG_H
 
 #include <cstdint>
+#include "Configs/HardwareConfig.h"
 
 namespace NetworkConfig
 {
     // --- Network adresses ---
     constexpr uint16_t MQTT_PORT                    = 1883;
     constexpr const char *const MQTT_SERVER_IP      = "192.168.1.1"; 
-    constexpr const char *const MQTT_SERVER_ID      = "";
-    constexpr uint8_t MAC[6]                        = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-    constexpr uint8_t IP[4]                         = {192, 168, 1, 177};
+    constexpr const char *const MQTT_SERVER_ID      = HardwareConfig::SIDE == HardwareConfig::LEFT ? "l" : "r";
+    constexpr uint8_t MAC[6]                        = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, HardwareConfig::SIDE == HardwareConfig::LEFT ? 0xED : 0xEE };
+    constexpr uint8_t IP[4]                         = {192, 168, 1, HardwareConfig::SIDE == HardwareConfig::LEFT ? 177 : 178};
 
     // --- MQTT configuration ---
     constexpr uint16_t MQTT_FEEDBACK_DELAY          = 100;
     
     constexpr const char *const TOPIC_SET_VEL       = "odrive/set_velocity";
-    constexpr const char *const TOPIC_FEEDBACK      = "odrive/feedback";
+    constexpr const char *const TOPIC_FEEDBACK      = HardwareConfig::SIDE == HardwareConfig::LEFT ? "odrive/feedback_left" : "odrive/feedback_right";
     constexpr const char *const TOPIC_CMD           = "odrive/cmd";
 
     // --- Network Safety ---

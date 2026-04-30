@@ -5,6 +5,7 @@
 #include "NetworkHandlers.h"
 #include "ODriveCAN.h"
 #include "Network.h"
+#include "StaticJsonMemoryAllocator.h"
 
 #include "States/NetworkState.h"
 #include "States/HardwareCommandState.h"
@@ -17,7 +18,7 @@ using CANConfig::ODriveAxisState;
 using CANConfig::ODriveInputMode;
 
 void NetworkHandlers::setVelocityHandler(
-    JsonDocument &doc,
+    JsonDocument doc,
     struct NetworkState &ns,
     struct HardwareCommandState &hcs
 )
@@ -26,7 +27,6 @@ void NetworkHandlers::setVelocityHandler(
     {
         hcs.wheels[0].targetVelocity = doc["velocity"];
         hcs.wheels[1].targetVelocity = doc["velocity"];
-        Serial.println(hcs.wheels[0].targetVelocity);
     }
     
     if (doc["steering"].is<float>())
@@ -37,8 +37,7 @@ void NetworkHandlers::setVelocityHandler(
             
         hcs.wheels[0].targetSteering = s;
         hcs.wheels[1].targetSteering = s;
-        
-        Serial.print("[MQTT] New Steering Target: "); Serial.println(hcs.wheels[1].targetSteering);
+        //Serial.print("[MQTT] New Steering Target: "); Serial.println(hcs.wheels[1].targetSteering);
     }
 }
 
@@ -48,7 +47,7 @@ void NetworkHandlers::setVelocityHandler(
 // MQTT config info + adresses for 4 wheels
 // Base -> {wheels_left, wheels right}
 
-void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
+void NetworkHandlers::controlCmdHandler(JsonDocument doc,
     HardwareCommandState &hcs,
     NetworkState &ns
 )
@@ -79,8 +78,6 @@ void NetworkHandlers::controlCmdHandler(JsonDocument &doc,
 
     auto cmd_arr = doc.as<JsonArray>();
 
-    
-    Serial.print("[MQTT] Command packet: [");
     for(uint8_t i = 0; i < cmd_arr.size(); i++)
     {
         Serial.print(cmd_arr[i].as<uint8_t>());
@@ -160,7 +157,14 @@ void NetworkHandlers::feedbackEncHandler(
     struct NetworkState &ns, const struct HardwareCommandState &hcs
 )
 {
-    char msg[128];
+    if(!ns.client.connected()) 
+    {
+        Serial.println("[MQTT] ERROR: failed to send feedback message! Client is disconnected.");
+    }
+    // static StaticJsonMemoryAllocator feedbackEncAllocator;
+	// JsonDocument doc(&feedbackEncAllocator);
+
+    StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> doc;
 
     /*
         [
@@ -171,16 +175,15 @@ void NetworkHandlers::feedbackEncHandler(
             4: measured position of the rear ODrive
         ]
     */
-   
-    snprintf(msg, sizeof(msg), "[%d, %.2f, %.2f, %.2f, %.2f]",
-        HardwareConfig::SIDE,
-        hcs.wheels[0].measuredVel,
-        hcs.wheels[0].measuredPos,
-        hcs.wheels[1].measuredVel,
-        hcs.wheels[1].measuredPos
-    );
+    doc.add(HardwareConfig::SIDE); // 0 oznacza lewą stronę, zgodnie z logiką Pythonowego GUI
+    doc.add(hcs.wheels[0].measuredVel);
+    doc.add(hcs.wheels[0].measuredPos);
+    doc.add(hcs.wheels[1].measuredVel);
+    doc.add(hcs.wheels[1].measuredPos);
 
-    //snprintf(msg, sizeof(msg), "{\"v_meas\":[%.2f],\"p_meas\":[%.2f]}", hcs.measuredVel, hcs.measuredPos);
+    char msg[NetworkConfig::MQTT_MAX_JSON_PAYLOAD];
+    serializeJson(doc, msg);
+
     ns.client.publish(NetworkConfig::TOPIC_FEEDBACK, msg);
 }
 
@@ -190,14 +193,18 @@ void NetworkHandlers::errorEncHandler(
     const uint32_t errorDesc
 )
 {
-    char errBuf[64];
+    if(!ns.client.connected()) 
+    {
+        Serial.println("[MQTT] ERROR: failed to send error message! Client is disconnected.");
+    }
+    // static StaticJsonMemoryAllocator errorEncAllocator;
+	// JsonDocument doc(&errorEncAllocator);
+    StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> doc;
 
-    // odrive_id: (node_id << 1) | side
-    snprintf(errBuf, sizeof(errBuf), "{\"error\": \"0x%X\", \"odrive_id\": \"%d%d\"}",
-        errorDesc,
-        node_id,
-        HardwareConfig::SIDE
-    );
+    doc["error"] = errorDesc;
+    doc["odrive_id"] = node_id;
 
+    char errBuf[NetworkConfig::MQTT_MAX_JSON_PAYLOAD];
+    serializeJson(doc, errBuf);
     ns.client.publish(NetworkConfig::TOPIC_FEEDBACK, errBuf);
 }

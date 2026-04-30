@@ -42,7 +42,7 @@ void setup()
     Serial.println();
     ODriveCAN::initCAN();
 
-    Serial.println("\n>>> SETUP COMPLETE <<<");
+    Serial.println("\n>>> SETUP COMPLETE <<<\n\n");
 }
 
 // ==========================================
@@ -54,7 +54,6 @@ void loop()
  
     if (now - ns.lastMqttCmdTime > NetworkConfig::MQTT_SAFETY_TIMEOUT)
     {
-        Serial.println("[LOOP] 12");
         if (hcs.wheels[0].targetVelocity != 0.0f || hcs.wheels[1].targetVelocity != 0.0f)
         {
             Serial.println("[LOOP] 13");
@@ -67,22 +66,18 @@ void loop()
     // 1. Obsługa MQTT i Ethernet
     Network::handleNetwork();
 
-    // 2. Wysyłanie do ODrive (CAN) co 50ms
-    /*
-    static uint32_t lastCanCycle = 0;
-    if (now - lastCanCycle > CANConfig::CAN_CYCLE_DELAY /*&& hcs.wheels[0].axisState == CANConfig::AXIS_STATE_CLOSED_LOOP_CONTROL*//*)
+    static unsigned long lastCanCycle = 0;
+    if (now - lastCanCycle > CANConfig::CAN_CYCLE_TIMEOUT)
     {
         lastCanCycle = now;
-        // Serial.println("[CAN] Sending Vel...");
-        ODriveCAN::sendVelocity(hcs.wheels[CANConfig::FRONT].targetVelocity, CANConfig::FRONT);
-        //ODriveCAN::sendVelocity(hcs.wheels[CANConfig::REAR].targetVelocity, CANConfig::REAR);
-
-        ODriveCAN::requestEncoderData(CANConfig::ODriveId::FRONT);
-        //ODriveCAN::requestEncoderData(CANConfig::ODriveId::REAR);
+        
+        ODriveCAN::sendVelocity(CANConfig::FRONT, hcs.wheels[CANConfig::FRONT].targetVelocity);
+        ODriveCAN::sendVelocity(CANConfig::REAR, hcs.wheels[CANConfig::REAR].targetVelocity);
+        
+        ODriveCAN::requestEncoderData(CANConfig::FRONT);
+        ODriveCAN::requestEncoderData(CANConfig::REAR);
     }
-    */
 
-    
     // 3. Odbiór danych z CAN
     ODriveCAN::handleCANMessages(hcs);
 

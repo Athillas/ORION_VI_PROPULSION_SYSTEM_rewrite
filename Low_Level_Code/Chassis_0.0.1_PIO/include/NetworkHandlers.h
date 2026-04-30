@@ -13,12 +13,12 @@
 namespace NetworkHandlers
 {
     void setVelocityHandler(
-        JsonDocument &doc,
+        JsonDocument doc,
         struct NetworkState &ns,
         struct HardwareCommandState &hcs
     );
 
-    void controlCmdHandler(JsonDocument &doc, HardwareCommandState &hcs, NetworkState &ns);
+    void controlCmdHandler(JsonDocument doc, HardwareCommandState &hcs, NetworkState &ns);
 
     void feedbackEncHandler(
         struct NetworkState &ns, const struct HardwareCommandState &hfs

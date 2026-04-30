@@ -129,6 +129,12 @@ void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
     uint8_t node_id = ((packet_id >> 5) & 0x3F); // Extracting bits 5-10
     uint8_t buffer[8]{};
 
+    if(node_id != 0 || node_id != 1) return;
+
+    Serial.print("\n\n");
+    Serial.print(node_id);
+    Serial.print("\n\n");
+
     if(node_id > 2)
     {
         Serial.println("[CAN] CRITICAL ERROR: Node id out of bounds!");
@@ -147,6 +153,7 @@ void ODriveCAN::handleCANMessages(struct HardwareCommandState &hcs)
     switch (cmd_id)
     {
         case ODriveCommandId::HEARTBEAT:
+            Serial.println("[CAN] HEARTBEAT");
             if(packet_size < 4)
             {
                 Serial.println("[CAN] ERROR: Wrong heartbeat packet size");

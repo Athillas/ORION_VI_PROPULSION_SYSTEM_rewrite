@@ -28,7 +28,7 @@ namespace HardwareConfig
         RIGHT                               = 1
     };
     
-    constexpr WheelsSide SIDE               = LEFT;
+    constexpr WheelsSide SIDE               = RIGHT;
 }
 
 #endif

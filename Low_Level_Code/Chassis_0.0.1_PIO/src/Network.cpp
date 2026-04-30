@@ -38,7 +38,6 @@ namespace
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-	Serial.println("Callback");
     if(ns_ == nullptr)
 	{
 		Serial.print("[MQTT] Local copy of NetworkState is not initialized in Network.cpp file! Call the initNetwork() before using other methods. Stopping.");
@@ -59,9 +58,10 @@ void callback(char* topic, byte* payload, unsigned int length)
 
 	// Stack buffer for the JSON document
 	uint8_t jsonBuffer[NetworkConfig::MQTT_MAX_JSON_PAYLOAD];
+	StaticJsonDocument<NetworkConfig::MQTT_MAX_JSON_PAYLOAD> doc;
 
-	static StaticJsonMemoryAllocator allocator;
-	JsonDocument doc(&allocator);
+	// static StaticJsonMemoryAllocator allocator;
+	// JsonDocument doc(&allocator);
 
     if (strcmp(topic, NetworkConfig::TOPIC_SET_VEL) == 0)
     {
